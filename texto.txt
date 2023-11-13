@@ -1,0 +1,52 @@
+Instruções do projeto
+Crie um banco de dados, adicione tabelas e determine quais são os atributos de cada uma. Em seguida, execute um trigger que se relacione com algum comando, como insert, select, delete ou update.
+
+Trabalhe esse código em seu IDE, suba ele para sua conta no GitHub e compartilhe o link desse projeto no campo ao lado para que outros desenvolvedores possam analisá-lo.
+
+
+
+
+/*tabela a ser triggerada*/
+
+create table hospede (
+  id_hospede SERIAL primary key,
+  nome varchar(30) not NULL,
+  CPF INT NOT NULL,
+  email varchar(20) NOT NULL,
+  telefone varchar(15) NOT NULL,
+  data_nascimento DATE
+  )
+
+  select * FROM hospede
+
+/*resultado da trigger*/
+
+create table hospedes_auditoria (
+  cod_hospede int not NULL,
+  data_alteracao DATE not NULL
+  )
+ 
+ select * FROM hospedes_auditoria
+
+/*funcao de auditoria */
+CREATE OR REPLACE FUNCTION hospede_log_func()
+RETURNS TRIGGER 
+AS
+$$
+BEGIN
+	INSERT INTO hospedes_auditoria(cod_hospede, data_alteracao)
+    	VALUES(NEW.id_hospede, CURRENT_DATE);
+        RETURN NEW;
+ END;
+$$ LANGUAGE plpgsql;
+ 
+ /* criacao da trigger o qual a cada inclusao ou alteracao da tabela hospede gera tabela de log*/
+
+ create TRIGGER audita_alteracao_tabel_hospede
+ AFTER INSERT or UPDATE
+ on hospede FOR EACH ROW
+ EXECUTE PROCEDURE  hospede_log_func()
+ 
+ /*teste da trigger*/
+ INSERT INTO hospede(nome, cpf, email, telefone, data_nascimento)
+VALUES ('HAGY', 013, 'hagy@hotmail.com', '11 9382-0461', '1963-11-18')
